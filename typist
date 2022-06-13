@@ -2,15 +2,29 @@
 
 redraw() {
     clear
-    echo "You Must Type: $phrase"
-    echo "${phrase:0:$location}"
-    echo "$user_input"
-    echo -n "$line" | xxd -b | awk '{print $2}'
-    #echo "Width = $(tput cols) Height = $(tput lines)"
+    echo "Here is your paragraph, Type it out as fast as possible"
+    echo "$phrase"
+    #echo "${phrase:0:$location}"
+    #echo "$user_input"
+    #echo "$binary"
+    #local res=$(difference)
+    #echo $res
+    local res2=$(colourize)
+    printf $res2
+    #echo $count
 }
 
 checkinput() {
-    for char in {{a..z},{A..Z}," "}; do
+    binary=$(echo -n $line | xxd -b | awk '{print $2}')
+    if [[ $binary = "01111111" ]]; then
+        user_input=${user_input::-1}
+        return 0
+    elif [[ $binary == $"00100000" ]]; then
+        user_input="${user_input} "
+        return 0
+    fi
+
+    for char in {{a..z},{A..Z}}; do
         if [[ $line = $char ]]; then
             current_position=${phrase:$location:1}
             user_input="${user_input}$line"
@@ -18,26 +32,50 @@ checkinput() {
             if [[ $line = $current_position ]]; then
                 location=$(($location + 1))
             fi
-            break
+            echo 0
         fi
     done
 }
 
-phrase="HelloWorld"
+difference() {
+    count=0
+    difference=""
+    for (( i=0; i<${#user_input}; i++)); do
+        if [[ ${user_input:$count:1} = ${phrase:$count:1} ]]; then
+            difference="${difference}y"
+        else
+            difference="${difference}n"
+        fi
+            count=$(($count + 1))
+    done
+    echo $difference
+}
+
+colourize() {
+    count=0
+    output=""
+    for (( i=0; i<${#difference}; i++)); do
+        dif=${difference:$count:1}
+        letter=${user_input:$count:1}
+        if [[ $dif = y ]]; then
+            output="$output$(tput setab 7)$(tput setaf 2)$letter$(tput sgr0)"
+        elif [[ $dif = n ]]; then
+            output="$output$(tput setab 7)$(tput setaf 1)$letter$(tput sgr0)"
+        fi
+        count=$(($count + 1))
+    done
+    printf $output
+}
+
+phrase="The quick brown fox jumps over the lazy dog"
 user_input=""
 location=0
-#BS=$'\010'
-BS="00001000"
-friend="eeny"
-
 
 while true; do
     redraw
-    read -rn1 line
-    if [[ $line = $BS ]]; then
-        user_input="${userinput}AAAAAAAAa"
-    fi
+    IFS=''
+    read -rN1 line
     checkinput
-
+    difference
 done
 
