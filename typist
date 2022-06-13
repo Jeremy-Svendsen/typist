@@ -1,0 +1,43 @@
+#!/bin/bash
+
+redraw() {
+    clear
+    echo "You Must Type: $phrase"
+    echo "${phrase:0:$location}"
+    echo "$user_input"
+    echo -n "$line" | xxd -b | awk '{print $2}'
+    #echo "Width = $(tput cols) Height = $(tput lines)"
+}
+
+checkinput() {
+    for char in {{a..z},{A..Z}," "}; do
+        if [[ $line = $char ]]; then
+            current_position=${phrase:$location:1}
+            user_input="${user_input}$line"
+
+            if [[ $line = $current_position ]]; then
+                location=$(($location + 1))
+            fi
+            break
+        fi
+    done
+}
+
+phrase="HelloWorld"
+user_input=""
+location=0
+#BS=$'\010'
+BS="00001000"
+friend="eeny"
+
+
+while true; do
+    redraw
+    read -rn1 line
+    if [[ $line = $BS ]]; then
+        user_input="${userinput}AAAAAAAAa"
+    fi
+    checkinput
+
+done
+
